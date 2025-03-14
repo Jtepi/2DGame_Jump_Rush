@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxqxm6xbhxbp4"]
+
+[ext_resource type="Texture2D" uid="uid://cdnkdgpv4d5mg" path="res://Sprites/pumpkin.png" id="1_xcmvu"]
+
+[node name="Area2D" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("1_xcmvu")
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="."]
+scale = Vector2(2, 2)
+polygon = PackedVector2Array(1, -8, -1, -8, -3, -5.5, -5, -5, -6, -4, -7, -2.5, -7, 3, -7, 6, -6, 7, -6, 8, 7, 8, 7, 4.5, 7, -2.5, 5, -5, 3, -5.5, 2, -6.5)

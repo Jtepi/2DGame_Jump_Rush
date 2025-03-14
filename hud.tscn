@@ -1,0 +1,124 @@
+[gd_scene load_steps=6 format=3 uid="uid://d2j43ewl2jely"]
+
+[ext_resource type="FontFile" uid="uid://c8u31xv8b0rb7" path="res://Fonts/Quantico-Bold.ttf" id="1_esd0a"]
+[ext_resource type="Texture2D" uid="uid://cu3u2vdc4uf4q" path="res://Sprites/heart.png" id="1_ogl3a"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uy27y"]
+bg_color = Color(0.823529, 0.454902, 0.705882, 1)
+shadow_color = Color(0.823529, 0.454902, 0.705882, 1)
+
+[sub_resource type="Theme" id="Theme_55gn7"]
+/styles/d274b4 = SubResource("StyleBoxFlat_uy27y")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o8mc3"]
+bg_color = Color(0, 0, 0.968627, 0.0705882)
+
+[node name="HUD" type="CanvasLayer"]
+
+[node name="ScoreLabel" type="Label" parent="."]
+offset_right = 208.0
+offset_bottom = 83.0
+theme_override_fonts/font = ExtResource("1_esd0a")
+theme_override_font_sizes/font_size = 60
+text = "SCORE : "
+horizontal_alignment = 1
+
+[node name="HighScoreLabel" type="Label" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -358.0
+offset_bottom = 83.0
+grow_horizontal = 0
+theme_override_fonts/font = ExtResource("1_esd0a")
+theme_override_font_sizes/font_size = 60
+text = "HIGH SCORE :"
+
+[node name="Heart1" type="Sprite2D" parent="."]
+position = Vector2(29.375, 97.5)
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("1_ogl3a")
+
+[node name="Heart2" type="Sprite2D" parent="."]
+position = Vector2(84.914, 97.5)
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("1_ogl3a")
+
+[node name="Heart3" type="Sprite2D" parent="."]
+position = Vector2(142, 97.5)
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("1_ogl3a")
+
+[node name="Control" type="Control" parent="."]
+texture_filter = 1
+layout_mode = 3
+anchors_preset = 0
+offset_left = 338.0
+offset_top = 234.0
+offset_right = 797.0
+offset_bottom = 376.0
+size_flags_horizontal = 4
+theme = SubResource("Theme_55gn7")
+
+[node name="ColorRect" type="ColorRect" parent="Control"]
+layout_mode = 0
+offset_left = -265.0
+offset_top = -47.0
+offset_right = 726.0
+offset_bottom = 237.0
+color = Color(0.895174, 0.635275, 0.803979, 1)
+
+[node name="Title" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.727
+anchor_top = -1.733
+anchor_right = -0.727
+anchor_bottom = -1.733
+offset_left = 461.693
+offset_top = 204.086
+offset_right = 658.693
+offset_bottom = 269.086
+theme_override_fonts/font = ExtResource("1_esd0a")
+theme_override_font_sizes/font_size = 34
+theme_override_styles/normal = SubResource("StyleBoxFlat_o8mc3")
+text = "JUMP RUSH"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Instructions" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.732
+anchor_top = -1.706
+anchor_right = -0.732
+anchor_bottom = -1.706
+offset_left = 85.988
+offset_top = 262.252
+offset_right = 1045.99
+offset_bottom = 418.252
+theme_override_fonts/font = ExtResource("1_esd0a")
+theme_override_font_sizes/font_size = 34
+text = "Press Space to Jump
+Press Space again mid-air to Double Jump
+Avoid Obstacles, 3 Hits = Game Over"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StartLabel" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.738
+anchor_top = -1.737
+anchor_right = -0.738
+anchor_bottom = -1.737
+offset_left = 347.742
+offset_top = 419.654
+offset_right = 790.742
+offset_bottom = 484.654
+theme_override_fonts/font = ExtResource("1_esd0a")
+theme_override_font_sizes/font_size = 34
+text = "Press Space to Start"
+horizontal_alignment = 1
+vertical_alignment = 1
+uppercase = true

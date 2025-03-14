@@ -1,0 +1,286 @@
+[gd_scene load_steps=9 format=3 uid="uid://ci4qhbl5426ug"]
+
+[ext_resource type="PackedScene" uid="uid://r6mtbroaucpo" path="res://Bg.tscn" id="1_0agu7"]
+[ext_resource type="PackedScene" uid="uid://t0y2e3bu4amh" path="res://ground.tscn" id="2_ix2e0"]
+[ext_resource type="PackedScene" uid="uid://163vk52tsgy2" path="res://Player.tscn" id="3_10utf"]
+[ext_resource type="PackedScene" uid="uid://d2j43ewl2jely" path="res://hud.tscn" id="5_2yg4r"]
+[ext_resource type="PackedScene" uid="uid://3e5pe8yya1sq" path="res://game_over.tscn" id="5_uswvy"]
+[ext_resource type="PackedScene" uid="uid://dikxfj4jqo40f" path="res://obstacle_timer.tscn" id="6_t714o"]
+[ext_resource type="AudioStream" uid="uid://dl6lhkc407jm4" path="res://Audio/Good Day So Far! Main Melody.wav" id="7_tmy3m"]
+
+[sub_resource type="GDScript" id="GDScript_qnb2t"]
+script/source = "extends Node
+
+# Preload Obstacle scenes
+var obstacle1_scene = preload(\"res://ObstacleScenes/obstacle1.tscn\") #Cherry
+var obstacle2_scene = preload(\"res://ObstacleScenes/obstacle2.tscn\") #Barrel
+var obstacle3_scene = preload(\"res://ObstacleScenes/obstacle3.tscn\") #Pumpkin
+var ship_scene = preload(\"res://ObstacleScenes/ship.tscn\") #Alien Ship
+
+# Store different obstacle types in an array
+var obstacle_types := [obstacle1_scene, obstacle2_scene, obstacle3_scene]
+var obstacles : Array
+var ship_heights := [200, 390] # y-positions for alien ship obstacles
+
+# Variables
+const player_start := Vector2i(150, 485)
+const camera_start := Vector2i(576, 324)
+
+@export var speed : float
+@export var start_speed : float = 8.0
+@export var max_speed : int = 15
+@export var screen_size : Vector2i # Stores screen dimensions
+@export var ground_y : int #Y-position of the ground
+@export var score : int 
+@export var score_modifier : int = 10
+@export var game_start : bool = false  
+@export var speed_modifier : int = 5000
+@export var difficulty : int
+@export var max_difficulty : int = 2
+@export var high_score : int = 0
+@export var max_health: int = 3
+var current_health: int
+var game_over_state: bool = false  # ✅ New flag to track if the game is over
+
+# Variables for obstacle positioning
+var last_obstacle 
+var fixed_height := 90  
+var fixed_width := 140  
+var min_scale := 0.5     
+var ship_min_scale := 1.5 
+
+# Called when the scene is initialized
+func _ready():
+	# Get screen size and ground position
+	screen_size = get_window().size
+	ground_y = $Ground/CollisionShape2D.global_position.y
+	# Connect UI buttons and timers 
+	$GameOver.get_node(\"Button\").pressed.connect(new_game) # Restart button
+	$ObstacleTimer.timeout.connect(generate_obstacles)  # Spawns obstacles at intervals
+	
+	# Start a new game
+	new_game()
+
+# Resets all game variables and states
+func new_game():
+	# Reset game state
+	difficulty = 0
+	score = 0
+	current_health = max_health
+	update_health_ui()
+	show_score()
+	game_start = false  # Game starts when the player presses a button
+	game_over_state = false  # Reset game over state
+	get_tree().paused = false # Ensure game is running
+	
+
+	# Clear obstacles
+	for obs in obstacles:
+		obs.queue_free()
+	obstacles.clear()
+
+	# Reset Player positon and Animation
+	$Player.position = player_start
+	$Player.velocity = Vector2.ZERO
+	$Player.set_process(false)  
+	$Player.get_node(\"AnimatedSprite2D\").play(\"idle\")
+
+	# Reset Camera & Ground positions
+	$Camera2D.position = camera_start
+	$Ground.position = Vector2i(0, 0)
+
+	# Reset HUD & Game Over UI
+	$HUD.get_node(\"Control\").show()
+	$HUD.get_node(\"Heart1\").show()
+	$HUD.get_node(\"Heart2\").show()
+	$HUD.get_node(\"Heart3\").show()
+	$GameOver.hide()
+
+	# Stop obstacle spawning before game starts
+	$ObstacleTimer.stop()
+
+# Handles game loop logic
+func _process(delta):
+	if game_over_state:
+		return  # Prevents any updates after game over
+	
+	# Start the game when the player presses a button
+	if not game_start:
+		if Input.is_action_just_pressed(\"ui_accept\"):  
+			start_game()
+	else:
+		# Adjust speed based on score
+		speed = min(max_speed, start_speed + score / speed_modifier)
+		difficulty_level()
+		
+		# Move player and camera forward
+		$Player.position.x += speed
+		$Camera2D.position.x += speed
+		
+		# Update score
+		score += speed
+		show_score()
+
+		# Scroll ground
+		if $Camera2D.position.x - $Ground.position.x > screen_size.x * 1.5:
+			$Ground.position.x += screen_size.x
+			
+		# Remove obstacles that go off screen
+		for obs in obstacles:
+			if obs.position.x < ($Camera2D.position.x - screen_size.x):
+				remove_obstacles(obs)
+
+# Starts the game when the player presses a button
+func start_game():
+	game_start = true  
+	$HUD.get_node(\"Control\").hide() # Hide initial UI
+	$Player.set_process(true)  # Enable player processing
+	$ObstacleTimer.start()  # Start obstacle spawning
+	$Player.get_node(\"AnimatedSprite2D\").play(\"run\")  # Ensures player animation updates immediately
+
+# Spawns obstacles at intervals
+func generate_obstacles():
+	if not game_start or game_over_state:
+		return  
+
+	if obstacles.is_empty() or (last_obstacle != null and is_instance_valid(last_obstacle) and last_obstacle.position.x < score + randi_range(600, 900)):  
+		var obs_type = obstacle_types[randi() % obstacle_types.size()]
+		var obs
+		var max_obstacles = difficulty + 1  # Increases the number of obstacles with difficulty
+
+		for i in range(randi() % max_obstacles + 1):
+			obs = obs_type.instantiate()
+			obs.scale = Vector2(1,1)
+
+			var obs_sprite = obs.get_node(\"Sprite2D\")
+			if obs_sprite and obs_sprite.texture:
+				var original_size = obs_sprite.texture.get_size()  
+				var original_height = original_size.y
+				var original_width = original_size.x
+
+				var scale_factor = fixed_height / original_height
+				obs.scale = Vector2(scale_factor, scale_factor)  
+
+				if (original_width * scale_factor) > fixed_width:
+					var width_scale_fix = fixed_width / (original_width * scale_factor)
+					obs.scale *= width_scale_fix  
+
+				if obs.scale.x < min_scale:
+					obs.scale = Vector2(min_scale, min_scale)
+
+				var obs_height = obs_sprite.texture.get_height() * obs.scale.y
+				var obs_x : int = screen_size.x + score + 150 + (i * 300)  
+				var obs_y : int = ground_y - (obs_height / 2)  
+
+				last_obstacle = obs  # Ensure last_obstacle is a valid object
+				add_obs(obs, obs_x, obs_y)
+
+		# Spawn alien ship at higher difficulty
+		if difficulty == max_difficulty and (randi() % 2) == 0:
+			var ship = ship_scene.instantiate()
+			ship.scale = Vector2(1,1)  
+
+			var ship_x : int = screen_size.x + score + 300
+			var ship_y : int = ship_heights[randi() % ship_heights.size()]
+			add_obs(ship, ship_x, ship_y)
+
+	$ObstacleTimer.start()  
+
+# Adds obstacles to the scene
+func add_obs(obs, x, y):
+	obs.position = Vector2i(x, y)
+	obs.z_index = 10  # Ensure obstacles appear above the background
+	obs.visible = true
+	obs.self_modulate = Color(1, 1, 1, 1)  
+	obs.body_entered.connect(hit_obs) # Detect collisions
+	add_child(obs)
+	obstacles.append(obs)
+
+# Removes off-screen obstacles
+func remove_obstacles(obs):
+	obs.queue_free()
+	obstacles.erase(obs)
+
+# Handles player collisions with obstacles
+func hit_obs(body):
+	if body.name == \"Player\":
+		current_health -= 1
+		update_health_ui()
+		
+		if current_health > 0:
+			$Player.modulate = Color(1, 0, 0)
+			$Player.set_collision_layer_value(1, false)
+			$Player.velocity.x = -150  
+			await get_tree().create_timer(0.3).timeout  
+			$Player.velocity.x = 0  
+			$Player.modulate = Color(1, 1, 1)  
+			$Player.set_collision_layer_value(1, true)  
+		else:
+			game_over()
+			
+# Updates the score
+func show_score():
+	$HUD.get_node(\"ScoreLabel\").text = \"SCORE: \" + str(score / score_modifier)
+
+# Checks and updates the high score
+func check_high_score():
+	if score > high_score:
+		high_score = score
+		$HUD.get_node(\"HighScoreLabel\").text = \"HIGH SCORE: \" + str(high_score / score_modifier)
+
+# Updates difficulty based on the score
+func difficulty_level():
+	difficulty = score / speed_modifier
+	if difficulty > max_difficulty:
+		difficulty = max_difficulty
+
+# Ends the game and handles game over logic
+func game_over():
+	check_high_score()
+	game_start = false  
+	game_over_state = true  # Prevents player from continuing after Game Over
+	
+	# Stop everything
+	$ObstacleTimer.stop()  
+	$Player.velocity = Vector2.ZERO
+	$Player.set_process(false)
+	$Player.get_node(\"AnimatedSprite2D\").play(\"idle\")
+	
+	$GameOver.show()
+
+# Updates the health UI and triggers game over if health reaches zero
+func update_health_ui():
+	if current_health == 2:
+		$HUD.get_node(\"Heart3\").hide()
+	elif current_health == 1:
+		$HUD.get_node(\"Heart2\").hide()
+	elif current_health <= 0:
+		$HUD.get_node(\"Heart1\").hide()
+		game_over()
+"
+
+[node name="Main" type="Node"]
+script = SubResource("GDScript_qnb2t")
+
+[node name="Background" parent="." instance=ExtResource("1_0agu7")]
+
+[node name="Ground" parent="." instance=ExtResource("2_ix2e0")]
+
+[node name="Player" parent="." instance=ExtResource("3_10utf")]
+position = Vector2(90, 478)
+scale = Vector2(4, 4)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="HUD" parent="." instance=ExtResource("5_2yg4r")]
+
+[node name="GameOver" parent="." instance=ExtResource("5_uswvy")]
+
+[node name="ObstacleTimer" parent="." instance=ExtResource("6_t714o")]
+wait_time = 1.0
+
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_tmy3m")
+volume_db = -10.0
+autoplay = true

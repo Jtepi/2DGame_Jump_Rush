@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://3e5pe8yya1sq"]
+
+[ext_resource type="FontFile" uid="uid://c8u31xv8b0rb7" path="res://Fonts/Quantico-Bold.ttf" id="1_muqao"]
+
+[node name="GameOver" type="CanvasLayer"]
+
+[node name="Button" type="Button" parent="."]
+texture_filter = 1
+offset_left = 451.0
+offset_top = 296.5
+offset_right = 701.0
+offset_bottom = 351.5
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("1_muqao")
+theme_override_font_sizes/font_size = 35
+text = "RESTART"

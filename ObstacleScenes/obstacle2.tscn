@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://dt8oyqpkeik20"]
+
+[ext_resource type="Texture2D" uid="uid://ddrxlf8paoesg" path="res://Sprites/spikes.png" id="1_540qf"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_pr7ta"]
+radius = 127.0
+height = 340.0
+
+[node name="Area2D" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_540qf")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1, 0)
+shape = SubResource("CapsuleShape2D_pr7ta")
