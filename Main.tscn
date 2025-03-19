@@ -60,7 +60,7 @@ func _ready():
 	
 	# Start a new game
 	new_game()
-
+	
 # Resets all game variables and states
 func new_game():
 	# Reset game state
@@ -189,10 +189,12 @@ func generate_obstacles():
 # Adds obstacles to the scene
 func add_obs(obs, x, y):
 	obs.position = Vector2i(x, y)
-	obs.z_index = 10  # Ensure obstacles appear above the background
+	obs.z_index = 0  # Ensure obstacles appear above the background
 	obs.visible = true
 	obs.self_modulate = Color(1, 1, 1, 1)  
 	obs.body_entered.connect(hit_obs) # Detect collisions
+	
+	
 	add_child(obs)
 	obstacles.append(obs)
 
@@ -216,12 +218,18 @@ func hit_obs(body):
 			$Player.modulate = Color(1, 1, 1)  
 			$Player.set_collision_layer_value(1, true)  
 		else:
+			
+			var sprite = $Player.get_node_or_null(\"AnimatedSprite2D\")
+
+			if sprite:
+				sprite.stop()  # Stop any other animation
+				sprite.play(\"hurt\")  # Play hurt animation
+			await get_tree().create_timer(1.5).timeout  # Wait for the animation
 			game_over()
 			
 # Updates the score
 func show_score():
 	$HUD.get_node(\"ScoreLabel\").text = \"SCORE: \" + str(score / score_modifier)
-
 # Checks and updates the high score
 func check_high_score():
 	if score > high_score:
@@ -235,7 +243,7 @@ func difficulty_level():
 		difficulty = max_difficulty
 
 # Ends the game and handles game over logic
-func game_over():
+func game_over(): 
 	check_high_score()
 	game_start = false  
 	game_over_state = true  # Prevents player from continuing after Game Over
@@ -244,7 +252,6 @@ func game_over():
 	$ObstacleTimer.stop()  
 	$Player.velocity = Vector2.ZERO
 	$Player.set_process(false)
-	$Player.get_node(\"AnimatedSprite2D\").play(\"idle\")
 	
 	$GameOver.show()
 

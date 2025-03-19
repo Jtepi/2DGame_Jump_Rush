@@ -1,18 +1,54 @@
-[gd_scene load_steps=3 format=3 uid="uid://cxuaibi5syt3u"]
+[gd_scene load_steps=4 format=3 uid="uid://cxuaibi5syt3u"]
 
-[ext_resource type="Texture2D" uid="uid://gp7dtlt1f6r2" path="res://Sprites/Cherry.png" id="1_is7g0"]
+[ext_resource type="Texture2D" path="res://Sprites/Obstacle1.png" id="1_yu3i4"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_724f8"]
-radius = 6.00925
+[sub_resource type="GDScript" id="GDScript_2i207"]
+script/source = "extends Area2D  # The obstacle is an Area2D
+
+@onready var explosion_particles = $ExplosionParticles  # Reference to explosion effect
+@onready var audio_player = $AudioStreamPlayer2D  # Reference to explosion sound
+
+func _ready():
+	print(\"Obstacle is ready:\", name)  # Debugging
+	connect(\"body_entered\", _on_body_entered)  # Connects the collision detection
+
+func _on_body_entered(body):
+	print(\"Collision detected with:\", body.name)  # Debugging
+
+	if body.is_in_group(\"player\"):  # Check if it's the player
+		print(\"Player hit obstacle:\", name)  # Debugging
+		explode_obstacle()  # Call explosion function
+
+func explode_obstacle():
+	print(\"Explosion triggered for:\", name)  # Debugging
+
+	if explosion_particles:
+		explosion_particles.visible = true  # Force visibility
+		explosion_particles.restart()  # Restart animation
+		explosion_particles.emitting = true  # Start explosion animation
+		print(\"Particles activated!\")  # Debugging
+
+	if audio_player:
+		audio_player.play()  # Play explosion sound
+		print(\"Sound played!\")  # Debugging
+
+	await get_tree().create_timer(1.0).timeout  # Wait before removing
+
+	print(\"Obstacle removed:\", name)  # Debugging
+	queue_free()  # Destroy the obstacle
+"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xb40n"]
+radius = 133.0
 
 [node name="Obstacle1" type="Area2D"]
+collision_layer = 3
+script = SubResource("GDScript_2i207")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture_filter = 1
-scale = Vector2(2, 2)
-texture = ExtResource("1_is7g0")
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("1_yu3i4")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-2, 6)
-scale = Vector2(2, 2)
-shape = SubResource("CircleShape2D_724f8")
+position = Vector2(-2, -1)
+shape = SubResource("CircleShape2D_xb40n")

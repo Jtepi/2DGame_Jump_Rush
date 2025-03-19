@@ -7,6 +7,8 @@ extends CharacterBody2D
 var can_double_jump: bool = false  # Tracks if player can jump again
 
 func _physics_process(delta):
+	if $AnimatedSprite2D.animation == "hurt":
+		return  # Stop updating animations if "hurt" is playing
 	# Apply gravity to the player's vertical velocity
 	velocity.y += gravity * delta
 	

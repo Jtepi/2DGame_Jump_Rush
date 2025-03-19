@@ -5,8 +5,9 @@ Jump Rush is a fast-paced 2D endless runner game set in the world of Sugarland. 
 
 ## Features
 - **Simple Controls** – Press `Space` to jump, and press it again in mid-air for a double jump.
-- **Obstacle Variety** – Avoid barrels, pumpkins, cherries, and even alien ships.
+- **Obstacle Variety** – Avoid candies and even alien ships.
 - **Health System** – You have 3 lives, and taking 3 hits results in game over.
+- **Hurt Animation** – When taking the final hit, Bounce will play game over animation(disappear).
 - **Progressive Difficulty** – The game speeds up as you go, making it more challenging over time.
 - **High Score Tracking** – Try to beat your best score!
 
